@@ -1,3 +1,5 @@
 docker-compose.yaml
 volumes/mosquitto
+.venv
+requirements.txt
 
