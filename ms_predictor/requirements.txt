@@ -1,0 +1,4 @@
+paho-mqtt
+json
+scikit-learn
+numpy

@@ -1,0 +1,91 @@
+version: '3.8'
+
+# Le réseau interne pour la communication entre microservices
+networks:
+  fog_net:
+    driver: bridge
+
+services:
+
+  # S1 : Le Broker MQTT (mosquitto-broker)
+  mosquitto-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto-broker
+    restart: always
+    ports:
+      # Port exposé pour les tests externes ou le débogage
+      - "1883:1883"
+    volumes:
+      # Montage de votre fichier de configuration mosquitto.conf
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./volumes/mosquitto/data:/mosquitto/data
+    networks:
+      - fog_net
+
+  # S2 : Le Simulateur de Données (node-red-simulator)
+  node-red-simulator:
+    image: nodered/node-red:latest
+    container_name: node-red-simulator
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    volumes:
+      # Montage du dossier de données pour la persistance des flows.json
+      - volumes/node_red_data:/data 
+    environment:
+      # Assurez que Node-RED utilise le bon nom d'hôte interne
+      - MQTT_HOST=mosquitto-broker 
+    depends_on:
+      - mosquitto-broker
+    networks:
+      - fog_net
+
+  # S3 : Microservice d'Ingestion (data-ingestor)
+  data-ingestor:
+    # Utilise le Dockerfile et le contexte dans le dossier ms_ingestor
+    build:
+      context: ./ms_ingestor
+    container_name: data-ingestor
+    restart: unless-stopped
+    command: python /app/ingestor_main.py # Lancement du script
+    environment:
+      - MQTT_HOST=mosquitto-broker
+    depends_on:
+      - mosquitto-broker
+    networks:
+      - fog_net
+
+  # S4 : Microservice Moteur de Prédiction (evap-predictor)
+  evap-predictor:
+    build:
+      context: ./ms_predictor
+    container_name: evap-predictor
+    restart: unless-stopped
+    command: python /app/predictor_main.py
+    environment:
+      - MQTT_HOST=mosquitto-broker
+    depends_on:
+      - mosquitto-broker
+    networks:
+      - fog_net
+
+  # S5 : Microservice Moteur de Décision (decision-engine)
+  decision-engine:
+    build:
+      context: ./ms_decision
+    container_name: decision-engine
+    restart: unless-stopped
+    command: python /app/decision_main.py
+    environment:
+      - MQTT_HOST=mosquitto-broker
+      - HUMIDITY_THRESHOLD_CRITICAL=25 
+      - HUMIDITY_THRESHOLD_OPTIMIZE=35
+    depends_on:
+      - mosquitto-broker
+      - evap-predictor  # S'assure que le prédicteur est prêt avant le moteur de décision
+    networks:
+      - fog_net
+
+# Définition des Volumes Persistants
+volumes:
+  node_red_data:
