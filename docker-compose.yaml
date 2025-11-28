@@ -24,7 +24,7 @@ services:
 
   # S2 : Le Simulateur de Données (node-red-simulator)
   node-red-simulator:
-    image: nodered/node-red:latest
+    image: nodered/node-red:latest-22
     container_name: node-red-simulator
     restart: unless-stopped
     ports:
