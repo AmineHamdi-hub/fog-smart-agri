@@ -5,6 +5,7 @@ import time
 
 # Configuration
 MQTT_HOST = os.getenv("MQTT_HOST", "mosquitto-broker")
+MQTT_PORT = 1883
 HUMIDITY_CRIT = float(os.getenv("HUMIDITY_THRESHOLD_CRITICAL", 25.0))
 HUMIDITY_OPT = float(os.getenv("HUMIDITY_THRESHOLD_OPTIMIZE", 35.0))
 WIND_MAX = 10.0 # m/s

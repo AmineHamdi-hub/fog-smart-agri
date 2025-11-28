@@ -2,9 +2,11 @@ import paho.mqtt.client as mqtt
 import os
 import json
 import random # Pour simuler un modèle sans dépendances lourdes
+import time
 
 # Configuration
 MQTT_HOST = os.getenv("MQTT_HOST", "mosquitto-broker")
+MQTT_PORT = 1883
 TOPIC_INPUT = "/sensors/field1/meteo"
 TOPIC_OUTPUT = "/predictor/field1/evap_rate"
 
