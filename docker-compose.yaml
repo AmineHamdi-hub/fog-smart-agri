@@ -31,7 +31,7 @@ services:
       - "1880:1880"
     volumes:
       # Montage du dossier de données pour la persistance des flows.json
-      - volumes/node_red_data:/data 
+      - ./volumes/node_red_data:/data 
     environment:
       # Assurez que Node-RED utilise le bon nom d'hôte interne
       - MQTT_HOST=mosquitto-broker 
